@@ -236,6 +236,10 @@ textarea {
 
 .button__wrapper {
     position: relative;
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
 }
 
 .button {

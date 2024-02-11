@@ -36,41 +36,56 @@
         <div class="nav__button">
             <div class="button__area">
                 <div class="button__wrapper">
-                    <a class="button" href="chapterList.html">
-                        <i class="ri-arrow-right-s-line"></i>
-                        Rozdziały
+                    <button class="button button__prev">
+                        <i class=" ri-arrow-right-s-line"></i>
+                        Poprzedni
                         <i class="ri-arrow-left-s-line"></i>
-                    </a>
-                    <div class="button__bg"></div>
+                    </button>
+                    <div class="num">
+                        <h1 class="num_h1 num__currentPage"></h1>
+                    </div>
+                    <button class="button button__next">
+                        <i class=" ri-arrow-right-s-line"></i>
+                        Następny
+                        <i class="ri-arrow-left-s-line"></i>
+                    </button>
                 </div>
             </div>
-        </div>
-        <div class="num">
-            <h1 class="num__h1"></h1>
         </div>
     </header>
 
     <main class="main">
         <div class="manhwa">
         </div>
+
+        <div class="scroll"></div>
     </main>
 
     <footer class="footer">
         <div class="nav__button">
             <div class="button__area">
                 <div class="button__wrapper">
-                    <a class="button" href="chapterList.html">
+                    <button class="button button__prev">
                         <i class=" ri-arrow-right-s-line"></i>
-                        Rozdziały
+                        Poprzedni
                         <i class="ri-arrow-left-s-line"></i>
-                    </a>
-                    <div class="button__bg"></div>
+                    </button>
+                    <div class="num">
+                        <h1 class="num__h1 num__currentPage"></h1>
+                    </div>
+                    <button class="button button__next">
+                        <i class=" ri-arrow-right-s-line"></i>
+                        Następny
+                        <i class="ri-arrow-left-s-line"></i>
+                    </button>
                 </div>
             </div>
         </div>
     </footer>
 </body>
 <script>
+    let missingImages = 0;
+
     function blast() {
         const blast = document.querySelectorAll('.blast');
         blast.forEach((blast) => {
@@ -83,24 +98,41 @@
         });
     }
 
-    function generateImages() {
-        let buttonNumber = localStorage.getItem('buttonNumber');
-        let images = document.querySelector('.manhwa');
-        let num__h1 = document.querySelector('.num__h1');
-        num__h1.innerHTML = `${buttonNumber}`;
+    const loadNoImageMessage = (imageNumber) => {
+        const div = document.createElement('div');
+        const images = document.querySelector('.manhwa');
 
-        let i = 1;
-        while (i <= 100) {
-            let img = document.createElement('img');
-            img.src = `https://huggingface.co/datasets/MattyMroz/SoloLeveling/resolve/main/R${buttonNumber}/${i}.png`;
-            img.alt = `Solo Leveling`;
-            images.appendChild(img);
-            i++;
-        }
+        div.innerHTML = `Missing Image - ${imageNumber}`;
+        images.appendChild(div);
+        missingImages = missingImages + 1;
+    }
+
+    const loadNextImage = (episodeNumber, i = 1) => {
+        if (i > 100 || missingImages > 4) return;
+
+        const img = document.createElement('img');
+        const images = document.querySelector('.manhwa');
+
+        img.src = `https://huggingface.co/datasets/MattyMroz/SoloLeveling/resolve/main/R${episodeNumber}/${i}.png`;
+        img.alt = `Solo Leveling`;
+        img.loading = 'lazy'
+        img.addEventListener('load', () => loadNextImage(episodeNumber, i + 1));
+        img.addEventListener('error', () => {
+            img.remove();
+            loadNoImageMessage(i);
+            loadNextImage(episodeNumber, i + 1);
+        });
+
+        images.appendChild(img);
+    }
+
+    function generateImages() {
+        const episodeNumber = localStorage.getItem('buttonNumber');
+        loadNextImage(episodeNumber);
     }
 
     function displayNone() {
-        let images = document.querySelectorAll('.manhwa img');
+        const images = document.querySelectorAll('.manhwa img');
         images.forEach((image) => {
             image.addEventListener('load', () => {
                 image.style.display = 'block';
@@ -111,9 +143,50 @@
         });
     }
 
+    const handleCurrentPage = () => {
+        const episodeNumber = localStorage.getItem('buttonNumber');
+        const num__h1 = document.querySelectorAll('.num__currentPage');
+        num__h1.forEach((el) => {el.innerHTML = `${episodeNumber}`});
+    }
+
+    const handlePrev = () => {
+        const nextButton = document.querySelectorAll('.button__prev');
+        nextButton.forEach((el) => {
+            el.addEventListener('click', () => {
+                const currentNumber = localStorage.getItem('buttonNumber');
+                localStorage.setItem('buttonNumber', Number(currentNumber) - 1);
+                window.scrollTo({
+                    top: 0,
+                    left: 0,
+                    behavior: 'instant',
+                });
+                location.reload();
+            });
+        });
+    }
+
+    const handleNext = () => {
+        const nextButton = document.querySelectorAll('.button__next');
+        nextButton.forEach((el) => {
+            el.addEventListener('click', () => {
+                const currentNumber = localStorage.getItem('buttonNumber');
+                localStorage.setItem('buttonNumber', Number(currentNumber) + 1);
+                window.scrollTo({
+                    top: 0,
+                    left: 0,
+                    behavior: 'instant',
+                });
+                location.reload();
+            });
+        });
+    }
+
     blast();
     generateImages();
     displayNone();
+    handleCurrentPage();
+    handlePrev();
+    handleNext();
 </script>
 
 </html>
